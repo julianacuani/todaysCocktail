@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+       // setContentView(R.layout.activity_main)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -29,13 +29,10 @@ class MainActivity : AppCompatActivity() {
 
         val viewModelFactory = CocktailsListViewModelFactory(CocktailsListRepository())
         val viewModel = ViewModelProvider(this, viewModelFactory).get(CocktailsListViewModel::class.java)
-        val list = viewModel.cocktailList
-        list.observe(this, Observer {
-            val imageView = findViewById<ImageView>(R.id.drink_image);
-            Glide.with(this)
-                .load(it[0].thumbUrl)
-                .into(imageView)
-            findViewById<TextView>(R.id.drink_name).text = it[0].thumbUrl
-        })
+
+        val itemsList = viewModel.cocktailList
+        itemsList.observe(this, Observer { items ->
+            adapter.data = items
+          })
     }
 }
