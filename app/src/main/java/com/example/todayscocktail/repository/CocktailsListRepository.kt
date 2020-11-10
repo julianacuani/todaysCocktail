@@ -2,37 +2,56 @@ package com.example.todayscocktail.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.todayscocktail.network.Cocktail
-import com.example.todayscocktail.network.CocktailsApi
+import com.example.todayscocktail.data.CocktailDAO
+import com.example.todayscocktail.entity.Cocktail
+import com.example.todayscocktail.network.CocktailsApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.lang.Exception
 
-class CocktailsListRepository() {
-    //segurador de dados interno da classe
+class CocktailsListRepository(private val cocktailDao: CocktailDAO,
+                              private val cocktailApi: CocktailsApiService) {
     private val cocktailListResponse = MutableLiveData<List<Cocktail>>()
 
-    //expoe os dados retornados pelo serviço
-    val  cocktailList: LiveData<List<Cocktail>>
+    val cocktailsList: LiveData<List<Cocktail>>
         get() = cocktailListResponse
 
     init {
-        getCocktailsList()
+        getCocktails()
     }
 
-    //requisição dos dados do coquitéis através do retrofit
-    private fun getCocktailsList() {
-        //executando tarefas foras da main thread
+    private fun getCocktails() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val listFromDB = cocktailDao.getAll()
+            if(listFromDB.isNotEmpty()) {
+                cocktailListResponse.postValue(listFromDB)
+            } else {
+                getCocktailsFromRemote()
+            }
+        }
+    }
+
+    private fun getCocktailsFromRemote() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val listResult = CocktailsApi.retrofitService.getNonAlcoholicCocktails().cocktailsList
+                val listResult = cocktailApi.getCocktails().cocktailsList
+                saveRemoteDataAtDatabase(listResult)
                 cocktailListResponse.postValue(listResult)
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     cocktailListResponse.postValue(listOf())
-                }
+                }//todo: improve remote access error
+            }
+        }
+    }
+
+    private fun saveRemoteDataAtDatabase(cocktailList: List<Cocktail>) {
+        CoroutineScope(Dispatchers.IO).launch {
+            for(cocktail in cocktailList) {
+                cocktailDao.insert(cocktail)
             }
         }
     }

@@ -7,7 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.todayscocktail.network.Cocktail
+import com.example.todayscocktail.entity.Cocktail
 import com.example.todayscocktail.R
 
 class DrinkItemAdapter: RecyclerView.Adapter<DrinkItemAdapter.DrinkItemViewHolder>(){
@@ -18,16 +18,23 @@ class DrinkItemAdapter: RecyclerView.Adapter<DrinkItemAdapter.DrinkItemViewHolde
     }
 
     inner class DrinkItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val drinkName: TextView = itemView.findViewById(R.id.drink_name)
-        val list: ImageView = itemView.findViewById(R.id.drink_image)
+        private val drinkName: TextView = itemView.findViewById(R.id.drink_name)
+        private val drinkImage: ImageView = itemView.findViewById(R.id.drink_image)
 
         fun bind(name: String, imageURL: String) {
-            drinkName.text = name
+            drinkName.text  = name
+            val imageURL: String = imageURL
 
-             val imageView = list;
+             if(imageURL.isNotEmpty()){
               Glide.with(itemView.context)
                  .load(imageURL)
-                 .into(imageView)
+                 .placeholder(R.drawable.ic_drink)
+                 .error(R.drawable.ic_drink)
+                 .into(drinkImage)
+             }else{
+                 Glide.with(itemView.context).clear(itemView)
+                 drinkImage.setImageResource(R.drawable.ic_drink)
+             }
         }
     }
 

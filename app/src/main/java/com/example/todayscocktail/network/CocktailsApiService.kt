@@ -22,7 +22,7 @@ interface CocktailsApiService {
     suspend fun getAlcoholicCocktails(): CocktailsResponse
 
     @GET("filter.php?a=Non_Alcoholic")
-    suspend fun getNonAlcoholicCocktails(): CocktailsResponse
+    suspend fun getCocktails(): CocktailsResponse
 }
 
 object CocktailsApi {
